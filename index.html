@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrsanAI PDP v3.0 | Dynamic Logic Factory</title>
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-purple: #bc13fe;
+            --bg-dark: #050508;
+            --bg-panel: #0f0f16;
+            --text-main: #e0e0e0;
+            --text-muted: #888899;
+            --border-glass: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); padding: 40px 20px; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .panel { background: var(--bg-panel); border: var(--border-glass); padding: 25px; border-radius: 15px; backdrop-filter: blur(10px); }
+        h1 { margin-bottom: 20px; font-size: 1.5rem; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 2px; }
+        label { display: block; margin: 15px 0 5px; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
+        input, textarea, select { 
+            width: 100%; background: #000; border: var(--border-glass); color: #fff; 
+            padding: 12px; border-radius: 8px; outline: none; margin-bottom: 10px;
+        }
+        input:focus, textarea:focus { border-color: var(--neon-blue); }
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .role-card { 
+            padding: 10px; border: var(--border-glass); border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.9rem;
+            background: rgba(255,255,255,0.02);
+        }
+        .role-card.active { border-color: var(--neon-purple); background: rgba(188, 19, 254, 0.1); }
+        .btn-gen { 
+            width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+            color: white; font-weight: bold; text-transform: uppercase; margin-top: 10px;
+        }
+        .output-box { 
+            background: #000; border: 1px solid #222; padding: 20px; border-radius: 10px; 
+            font-family: 'Courier New', monospace; font-size: 0.85rem; color: #00d4ff;
+            height: 650px; overflow-y: auto; white-space: pre-wrap;
+        }
+        .copy-btn { float: right; background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 0.7rem; }
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="panel">
+        <h1>⚙️ Logic Engine v3.0</h1>
+        
+        <label>1. Dein Hintergrund / Job</label>
+        <input type="text" id="userJob" placeholder="z.B. Senior Projektleiter, Student, Bäcker, CEO...">
+
+        <label>2. Operative Basis-Rolle</label>
+        <div class="role-grid">
+            <div class="role-card active" onclick="setRole('manager', this)">👔 Manager</div>
+            <div class="role-card" onclick="setRole('dev', this)">💻 Developer</div>
+            <div class="role-card" onclick="setRole('creative', this)">🎨 Creative</div>
+            <div class="role-card" onclick="setRole('analyst', this)">📊 Analyst</div>
+        </div>
+
+        <label>3. Gewünschte Zusatz-Perspektiven (Optional)</label>
+        <input type="text" id="customPerspectives" placeholder="z.B. Steuerberater, Psychologe, Kritiker...">
+
+        <label>4. Dein Vorhaben (Intent)</label>
+        <textarea id="userIntent" style="height: 120px;" placeholder="Was ist das Problem?"></textarea>
+
+        <label>5. Logik-Modus</label>
+        <select id="logicMode">
+            <option value="strict">Strict (Nur gewählte Rollen)</option>
+            <option value="auto" selected>Auto-Detect (KI wählt beste Experten selbst)</option>
+        </select>
+
+        <button class="btn-gen" onclick="generate()">⚡ Generate IrsanAI Protocol</button>
+    </div>
+
+    <div class="panel">
+        <button class="copy-btn" onclick="copy()">Copy Protocol</button>
+        <h1>🚀 Protocol Output</h1>
+        <div class="output-box" id="output">// System Ready...</div>
+    </div>
+</div>
+
+<script>
+    let currentRole = 'manager';
+    function setRole(role, el) {
+        currentRole = role;
+        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function generate() {
+        const job = document.getElementById('userJob').value || 'User';
+        const intent = document.getElementById('userIntent').value;
+        const custom = document.getElementById('customPerspectives').value;
+        const mode = document.getElementById('logicMode').value;
+
+        if(!intent) return alert("Intent required!");
+
+        const protocol = `### IRSAN.AI PDP v3.0 [DYNAMIC PROTOCOL]
+### LOGIC FACTORY STANDARDS // ${new Date().toLocaleString()}
+
+[USER PROFILE]
+- Profession/Context: ${job}
+- Primary Base Perspective: ${currentRole.toUpperCase()}
+${custom ? `- Additional Required Perspectives: ${custom}` : ''}
+
+[SYSTEM INSTRUCTION: PERSPECTIVE MANAGEMENT]
+Du handelst als 'Perspective-Driven Agent'. Deine Aufgabe ist es, den USER INTENT nicht einfach zu beantworten, sondern durch die oben definierten Linsen zu filtern.
+
+${mode === 'auto' ? `
+[AUTO-DETECTION ACTIVATED]
+Untersuche den USER INTENT. Identifiziere eigenständig 2 weitere Experten-Perspektiven, die für dieses spezifische Problem den höchsten ROI (Return on Intelligence) liefern würden. Simuliere eine interne Diskussion dieser Experten, bevor du die finale Antwort gibst.` : ''}
+
+[USER INTENT]
+"""
+${intent}
+"""
+
+[EXECUTION RULES]
+1. Berücksichtige, dass der User als '${job}' arbeitet - passe die Komplexität und Terminologie entsprechend an.
+2. Nutze die '${currentRole}'-Basis als primären Filter für die Lösungsstruktur.
+3. Falls 'Auto-Detect' aktiv ist: Benenne die von dir gewählten Zusatz-Experten kurz zu Beginn.
+4. Gib eine deterministische, logisch strukturierte Lösung aus. Vermeide Standard-KI-Floskeln.
+
+### START PROCESSING ###`;
+
+        document.getElementById('output').innerText = protocol;
+    }
+
+    function copy() {
+        navigator.clipboard.writeText(document.getElementById('output').innerText);
+        alert("Protocol copied to clipboard!");
+    }
+</script>
+</body>
+</html>
