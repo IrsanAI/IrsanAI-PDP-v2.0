@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrsanAI PDP v2.0 | Logic Factory</title>
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --bg-dark: #0a0a12;
+            --panel-bg: rgba(20, 20, 35, 0.7);
+            --text-main: #e0e0e0;
+            --text-muted: #8a8a9b;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --glow: 0 0 20px rgba(0, 242, 255, 0.2);
+            --font-main: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 242, 255, 0.1) 0%, transparent 20%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 40px;
+            border-bottom: var(--glass-border);
+        }
+
+        .brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand span {
+            font-size: 0.8rem;
+            background: var(--secondary);
+            -webkit-text-fill-color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }
+
+        .lang-selector select {
+            background: rgba(0,0,0,0.3);
+            border: var(--glass-border);
+            color: var(--text-main);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* --- Grid Layout --- */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+
+        /* --- Cards --- */
+        .panel {
+            background: var(--panel-bg);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            opacity: 0.5;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- Personality/Role Selector --- */
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .role-card {
+            background: rgba(255,255,255,0.03);
+            border: var(--glass-border);
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+        }
+
+        .role-card:hover, .role-card.active {
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: var(--glow);
+            transform: translateY(-2px);
+        }
+
+        .role-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+        .role-title { font-weight: bold; display: block; margin-bottom: 5px; }
+        .role-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* --- Input Area --- */
+        textarea {
+            width: 100%;
+            height: 180px;
+            background: rgba(0,0,0,0.2);
+            border: var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            font-family: var(--font-main);
+            font-size: 1rem;
+            resize: vertical;
+            outline: none;
+        }
+
+        textarea:focus { border-color: var(--primary); }
+
+        /* --- Logic Prism Visualization --- */
+        .prism-status {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .prism-bar {
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .prism-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* --- Action Button --- */
+        .btn-generate {
+            width: 100%;
+            padding: 18px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-generate:hover {
+            box-shadow: 0 0 30px rgba(112, 0, 255, 0.4);
+            transform: scale(1.01);
+        }
+
+        /* --- Output Area --- */
+        .output-wrapper {
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-block {
+            flex-grow: 1;
+            background: #0d0d15;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #a5d6ff;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border: 1px solid #2a2a40;
+            max-height: 700px;
+        }
+
+        .copy-overlay {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: var(--secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .copy-overlay:hover { opacity: 1; }
+
+        /* --- Animations --- */
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .scanning { animation: pulse 1.5s infinite; color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            IRSAN.AI <span>PDP v2.0</span>
+        </div>
+        <div class="lang-selector">
+            <select id="languageSelector" onchange="changeLanguage()">
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="bs">🇧🇦 Bosanski</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="es">🇪🇸 Español</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="panel">
+            <h2 id="lbl_config">⚙️ Logic Configuration</h2>
+            
+            <p id="lbl_role_sub" style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted);">Wähle deine operative Perspektive:</p>
+            
+            <div class="role-grid">
+                <div class="role-card active" onclick="selectRole('manager', this)">
+                    <span class="role-icon">👔</span>
+                    <span class="role-title" id="role_manager">Manager / Biz</span>
+                    <span class="role-desc" id="desc_manager">Fokus: ROI, Strategie, No-Code</span>
+                </div>
+                <div class="role-card" onclick="selectRole('dev', this)">
+                    <span class="role-icon">💻</span>
+                    <span class="role-title" id="role_dev">Developer</span>
+                    <span class="role-desc" id="desc_dev">Fokus: Code, API, Logik</span>
+                </div>
+                <div class="role-card" onclick="selectRole('creative', this)">
+                    <span class="role-icon">🎨</span>
+                    <span class="role-title" id="role_creative">Creative</span>
+                    <span class="role-desc" id="desc_creative">Fokus: Design, UX, Vision</span>
+                </div>
+                <div class="role-card" onclick="selectRole('analyst', this)">
+                    <span class="role-icon">🔍</span>
+                    <span class="role-title" id="role_analyst">Analyst</span>
+                    <span class="role-desc" id="desc_analyst">Fokus: Daten, Struktur, Excel</span>
+                </div>
+            </div>
+
+            <h2 id="lbl_input">💬 User Intent</h2>
+            <textarea id="userPrompt" placeholder="Beschreibe dein Ziel... (z.B. 'Ich brauche eine Lösung um 500 PDFs zu sortieren' oder 'Erstelle einen Python Bot')" oninput="analyzeInput()"></textarea>
+
+            <div class="prism-status">
+                <div>
+                    <span id="lbl_prism">Prism Logic:</span> <span id="logicState" class="scanning">Standby</span>
+                </div>
+                <div>
+                    Confidence: <span id="confValue">0%</span>
+                </div>
+            </div>
+            <div class="prism-bar"><div class="prism-fill" id="prismFill"></div></div>
+
+            <button class="btn-generate" onclick="generateProtocol()" id="btn_generate">⚡ Activate IrsanAI Logic</button>
+        </div>
+
+        <div class="panel">
+            <div class="output-wrapper">
+                <h2 id="lbl_output">🚀 System Prompt Output</h2>
+                <div class="copy-overlay" onclick="copyToClipboard()" id="btn_copy">📋 Copy</div>
+                <div class="code-block" id="outputArea">// Warten auf Input...
+// Wähle eine Rolle und beschreibe dein Problem.
+// IrsanAI PDP (Perspective-Driven Protocol) generiert den optimalen Meta-Prompt.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- TRANSLATION MATRIX (5 Languages) ---
+        const i18n = {
+            de: {
+                config: "⚙️ Logik Konfiguration",
+                roleSub: "Wähle deine operative Perspektive:",
+                input: "💬 Dein Vorhaben",
+                output: "🚀 System Prompt Output",
+                placeholder: "Beschreibe dein Ziel... z.B. 'Ich will 500 Rechnungen automatisieren' oder 'Debugge diesen Code'.",
+                roles: {
+                    manager: { title: "Manager / Biz", desc: "Fokus: Nutzen, Prozesse, No-Code" },
+                    dev: { title: "Developer", desc: "Fokus: Architektur, Code, Shell" },
+                    creative: { title: "Creative", desc: "Fokus: UI/UX, Design, Flow" },
+                    analyst: { title: "Analyst", desc: "Fokus: Daten, Excel, Reports" }
+                },
+                btnGen: "⚡ IrsanAI Logik Aktivieren",
+                btnCopy: "📋 Kopieren",
+                logic: { standby: "Bereit", processing: "Analysiere...", optimized: "Optimiert" },
+                promptText: {
+                    intro: "Du bist IrsanAI (Powered by Logic-Factory).",
+                    instruction: "Du handelst nicht als Standard-LLM, sondern als immersiver 'Perspective-Manager'.",
+                    roleContext: "Der User hat folgende Rolle gewählt:",
+                    userIntent: "USER INTENT (Ungefiltert):",
+                    coreTask: "DEINE KERN-AUFGABE:",
+                    ruleNoCode: "⛔ CODE-VERBOT: Der User ist Non-Coder. Biete KEINE Python/Shell Lösungen an. Nutze 'Weg 1' (UI, Menüs, Tools, Analogien).",
+                    ruleCode: "✅ CODE-MODUS: Der User ist Entwickler. Nutze 'Weg 2' (Skripte, Architektur, APIs). Sei technisch präzise.",
+                    ruleAnalyst: "📊 ANALYSE-MODUS: Strukturiere Daten. Biete Excel/SQL/No-Code Tools an.",
+                    ruleCreative: "🎨 KREATIV-MODUS: Fokus auf Visuelles, UX und 'Look & Feel'. Vermeide technisches Jargon.",
+                    closing: "Antworte IMMER in der Sprache des Users. Starte die Antwort mit einer kurzen Bestätigung der erkannten Rolle."
+                }
+            },
+            en: {
+                config: "⚙️ Logic Configuration",
+                roleSub: "Select your operative perspective:",
+                input: "💬 User Intent",
+                output: "🚀 System Prompt Output",
+                placeholder: "Describe your goal... e.g. 'Automate 500 invoices' or 'Debug this python script'.",
+                roles: {
+                    manager: { title: "Manager / Biz", desc: "Focus: ROI, Strategy, No-Code" },
+                    dev: { title: "Developer", desc: "Focus: Architecture, Code, Shell" },
+                    creative: { title: "Creative", desc: "Focus: UI/UX, Design, Flow" },
+                    analyst: { title: "Analyst", desc: "Focus: Data, Excel, Reports" }
+                },
+                btnGen: "⚡ Activate IrsanAI Logic",
+                btnCopy: "📋 Copy",
+                logic: { standby: "Standby", processing: "Analyzing...", optimized: "Optimized" },
+                promptText: {
+                    intro: "You are IrsanAI (Powered by Logic-Factory).",
+                    instruction: "You do not act as a standard LLM, but as an immersive 'Perspective-Manager'.",
+                    roleContext: "The user selected the following role:",
+                    userIntent: "USER INTENT (Raw):",
+                    coreTask: "YOUR CORE TASK:",
+                    ruleNoCode: "⛔ NO-CODE RULE: User is Non-Coder. Do NOT offer Python/Shell. Use 'Path 1' (UI, Menus, Tools, Analogies).",
+                    ruleCode: "✅ CODE-MODE: User is Developer. Use 'Path 2' (Scripts, Architecture, APIs). Be technically precise.",
+                    ruleAnalyst: "📊 ANALYST-MODE: Structure data. Offer Excel/SQL/No-Code tools.",
+                    ruleCreative: "🎨 CREATIVE-MODE: Focus on Visuals, UX and 'Look & Feel'. Avoid technical jargon.",
+                    closing: "ALWAYS answer in the user's language. Start by acknowledging the detected role."
+                }
+            },
+            bs: {
+                config: "⚙️ Logika Konfiguracija",
+                roleSub: "Odaberite operativnu perspektivu:",
+                input: "💬 Vaš Cilj",
+                output: "🚀 System Prompt Izlaz",
+                placeholder: "Opišite svoj cilj... npr. 'Automatizuj 500 faktura' ili 'Napravi Python skriptu'.",
+                roles: {
+                    manager: { title: "Menadžer / Biz", desc: "Fokus: ROI, Strategija, Bez Koda" },
+                    dev: { title: "Developer", desc: "Fokus: Arhitektura, Kod, API" },
+                    creative: { title: "Kreativac", desc: "Fokus: Dizajn, UI/UX, Vizija" },
+                    analyst: { title: "Analitičar", desc: "Fokus: Podaci, Excel, Izveštaji" }
+                },
+                btnGen: "⚡ Aktiviraj IrsanAI Logiku",
+                btnCopy: "📋 Kopiraj",
+                logic: { standby: "Spreman", processing: "Analiziram...", optimized: "Optimizovano" },
+                promptText: {
+                    intro: "Ti si IrsanAI (Powered by Logic-Factory).",
+                    instruction: "Ne ponašaš se kao standardni LLM, već kao imersivni 'Menadžer Perspektive'.",
+                    roleContext: "Korisnik je odabrao sledeću ulogu:",
+                    userIntent: "NAMERA KORISNIKA (Sirovo):",
+                    coreTask: "TVOJ GLAVNI ZADATAK:",
+                    ruleNoCode: "⛔ ZABRANA KODA: Korisnik ne programira. NE nudi Python/Shell rešenja. Koristi 'Put 1' (UI, Meniji, Alati, Analogije).",
+                    ruleCode: "✅ KOD MOD: Korisnik je programer. Koristi 'Put 2' (Skripte, Arhitektura, API). Budi tehnički precizan.",
+                    ruleAnalyst: "📊 ANALIZA MOD: Strukturiraj podatke. Ponudi Excel/SQL/No-Code alate.",
+                    ruleCreative: "🎨 KREATIVNI MOD: Fokus na vizuelno, UX i 'Look & Feel'. Izbegavaj tehnički žargon.",
+                    closing: "UVEK odgovaraj na jeziku korisnika. Započni odgovor potvrdom prepoznate uloge."
+                }
+            },
+            fr: {
+                config: "⚙️ Configuration Logique",
+                roleSub: "Choisissez votre perspective opérationnelle :",
+                input: "💬 Votre intention",
+                output: "🚀 Sortie System Prompt",
+                placeholder: "Décrivez votre objectif... ex: 'Automatiser 500 factures' ou 'Débugger ce script'.",
+                roles: {
+                    manager: { title: "Manager / Biz", desc: "Focus : ROI, Stratégie, No-Code" },
+                    dev: { title: "Développeur", desc: "Focus : Architecture, Code, Shell" },
+                    creative: { title: "Créatif", desc: "Focus : UI/UX, Design, Flux" },
+                    analyst: { title: "Analyste", desc: "Focus : Données, Excel, Rapports" }
+                },
+                btnGen: "⚡ Activer Logique IrsanAI",
+                btnCopy: "📋 Copier",
+                logic: { standby: "Prêt", processing: "Analyse...", optimized: "Optimisé" },
+                promptText: {
+                    intro: "Tu es IrsanAI (Propulsé par Logic-Factory).",
+                    instruction: "Tu n'agis pas comme un LLM standard, mais comme un 'Gestionnaire de Perspective' immersif.",
+                    roleContext: "L'utilisateur a choisi le rôle suivant :",
+                    userIntent: "INTENTION UTILISATEUR (Brut) :",
+                    coreTask: "TA TÂCHE PRINCIPALE :",
+                    ruleNoCode: "⛔ INTERDICTION DE CODE : L'utilisateur est non-codeur. NE propose PAS de Python/Shell. Utilise la 'Voie 1' (UI, Menus, Outils).",
+                    ruleCode: "✅ MODE CODE : L'utilisateur est développeur. Utilise la 'Voie 2' (Scripts, API). Sois techniquement précis.",
+                    ruleAnalyst: "📊 MODE ANALYSTE : Structure les données. Propose Excel/SQL/Outils No-Code.",
+                    ruleCreative: "🎨 MODE CRÉATIF : Focus sur le visuel, l'UX et le ressenti. Évite le jargon technique.",
+                    closing: "Réponds TOUJOURS dans la langue de l'utilisateur. Commence par confirmer le rôle détecté."
+                }
+            },
+            es: {
+                config: "⚙️ Configuración Lógica",
+                roleSub: "Selecciona tu perspectiva operativa:",
+                input: "💬 Tu Intención",
+                output: "🚀 Salida System Prompt",
+                placeholder: "Describe tu objetivo... ej: 'Automatizar 500 facturas' o 'Crear script Python'.",
+                roles: {
+                    manager: { title: "Gerente / Biz", desc: "Enfoque: ROI, Estrategia, No-Code" },
+                    dev: { title: "Desarrollador", desc: "Enfoque: Arquitectura, Código, Shell" },
+                    creative: { title: "Creativo", desc: "Enfoque: UI/UX, Diseño, Flujo" },
+                    analyst: { title: "Analista", desc: "Enfoque: Datos, Excel, Informes" }
+                },
+                btnGen: "⚡ Activar Lógica IrsanAI",
+                btnCopy: "📋 Copiar",
+                logic: { standby: "Listo", processing: "Analizando...", optimized: "Optimizado" },
+                promptText: {
+                    intro: "Eres IrsanAI (Impulsado por Logic-Factory).",
+                    instruction: "No actúas como un LLM estándar, sino como un 'Gestor de Perspectiva' inmersivo.",
+                    roleContext: "El usuario ha seleccionado el siguiente rol:",
+                    userIntent: "INTENCIÓN DEL USUARIO (Cruda):",
+                    coreTask: "TU TAREA PRINCIPAL:",
+                    ruleNoCode: "⛔ PROHIBIDO CÓDIGO: Usuario no programa. NO ofrezcas Python/Shell. Usa 'Camino 1' (UI, Menús, Herramientas).",
+                    ruleCode: "✅ MODO CÓDIGO: Usuario es desarrollador. Usa 'Camino 2' (Scripts, API). Sé técnicamente preciso.",
+                    ruleAnalyst: "📊 MODO ANALISTA: Estructura datos. Ofrece Excel/SQL/No-Code.",
+                    ruleCreative: "🎨 MODO CREATIVO: Enfoque en visuales, UX y sensaciones. Evita jerga técnica.",
+                    closing: "Responde SIEMPRE en el idioma del usuario. Comienza confirmando el rol detectado."
+                }
+            }
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentLang = 'de';
+        let currentRole = 'manager';
+
+        function changeLanguage() {
+            currentLang = document.getElementById('languageSelector').value;
+            const t = i18n[currentLang];
+
+            // Update UI
+            document.getElementById('lbl_config').innerText = t.config;
+            document.getElementById('lbl_role_sub').innerText = t.roleSub;
+            document.getElementById('lbl_input').innerText = t.input;
+            document.getElementById('lbl_output').innerText = t.output;
+            document.getElementById('userPrompt').placeholder = t.placeholder;
+            document.getElementById('btn_generate').innerText = t.btnGen;
+            document.getElementById('btn_copy').innerText = t.btnCopy;
+            document.getElementById('logicState').innerText = t.logic.standby;
+
+            // Update Roles
+            document.getElementById('role_manager').innerText = t.roles.manager.title;
+            document.getElementById('desc_manager').innerText = t.roles.manager.desc;
+            document.getElementById('role_dev').innerText = t.roles.dev.title;
+            document.getElementById('desc_dev').innerText = t.roles.dev.desc;
+            document.getElementById('role_creative').innerText = t.roles.creative.title;
+            document.getElementById('desc_creative').innerText = t.roles.creative.desc;
+            document.getElementById('role_analyst').innerText = t.roles.analyst.title;
+            document.getElementById('desc_analyst').innerText = t.roles.analyst.desc;
+        }
+
+        function selectRole(role, element) {
+            currentRole = role;
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            analyzeInput(); // Re-calc logic
+        }
+
+        function analyzeInput() {
+            const input = document.getElementById('userPrompt').value;
+            const length = input.length;
+            const fill = Math.min(100, (length / 5)); // Fake confidence visualization
+            
+            document.getElementById('prismFill').style.width = fill + '%';
+            document.getElementById('confValue').innerText = Math.min(100, Math.floor(length / 2)) + '%';
+            
+            const t = i18n[currentLang];
+            if (length > 10) {
+                document.getElementById('logicState').innerText = t.logic.processing;
+                document.getElementById('logicState').style.color = '#00f2ff';
+            } else {
+                document.getElementById('logicState').innerText = t.logic.standby;
+                document.getElementById('logicState').style.color = '#8a8a9b';
+            }
+        }
+
+        function generateProtocol() {
+            const prompt = document.getElementById('userPrompt').value.trim();
+            if (!prompt) {
+                alert("Please enter a request first / Bitte Anfrage eingeben");
+                return;
+            }
+
+            const t = i18n[currentLang].promptText;
+            const timestamp = new Date().toISOString();
+
+            // Construct specific logic block based on role
+            let logicInstruction = "";
+            if (currentRole === 'manager') logicInstruction = t.ruleNoCode;
+            else if (currentRole === 'dev') logicInstruction = t.ruleCode;
+            else if (currentRole === 'analyst') logicInstruction = t.ruleAnalyst;
+            else if (currentRole === 'creative') logicInstruction = t.ruleCreative;
+
+            // THE IRSAN.AI PDP v2.0 SYSTEM PROMPT STRUCTURE
+            const finalSystemPrompt = `
+#######################################################
+### IRSAN.AI PDP v2.0 - PERSPECTIVE DRIVEN PROTOCOL ###
+### LOGIC FACTORY // TIMESTAMP: ${timestamp}
+#######################################################
+
+${t.intro}
+${t.instruction}
+
+[CONTEXT LAYER]
+${t.roleContext} [[ ${currentRole.toUpperCase()} ]]
+LANGUAGE: ${currentLang.toUpperCase()}
+
+[PRISM LOGIC INSTRUCTION]
+${logicInstruction}
+
+[USER INPUT LAYER]
+${t.userIntent}
+"""
+${prompt}
+"""
+
+[EXECUTION LAYER]
+${t.coreTask}
+1. Analysiere das Problem durch die Brille der Rolle '${currentRole}'.
+2. Wende das IrsanAI LRP (Weg 1 vs Weg 2) dynamisch an:
+   - Weg 1: Direkte Lösung (angepasst an Rolle).
+   - Weg 2: Anforderung weiterer Infos (System, OS, Screenshot) falls unklar.
+3. ${t.closing}
+
+### START PROCESSING ###
+`;
+
+            // Animate Output
+            const outputArea = document.getElementById('outputArea');
+            outputArea.innerText = "";
+            document.getElementById('logicState').innerText = i18n[currentLang].logic.optimized;
+            
+            // Typewriter effect simulation
+            let i = 0;
+            const speed = 2; // ms
+            function typeWriter() {
+                if (i < finalSystemPrompt.length) {
+                    outputArea.innerText += finalSystemPrompt.charAt(i);
+                    outputArea.scrollTop = outputArea.scrollHeight;
+                    i++;
+                    setTimeout(typeWriter, speed);
+                }
+            }
+            typeWriter();
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('outputArea').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('btn_copy');
+                const original = btn.innerText;
+                btn.innerText = "✅ OK";
+                setTimeout(() => btn.innerText = original, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
