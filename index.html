@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrsanAI PDP v2.0 | Perspective-Driven Protocol</title>
+    <meta name="description" content="The Logic Factory Standard for LLM Communication. Turn vague prompts into deterministic outcomes.">
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-purple: #bc13fe;
+            --bg-dark: #050508;
+            --bg-panel: #0f0f16;
+            --text-main: #e0e0e0;
+            --text-muted: #888899;
+            --border-glass: 1px solid rgba(255, 255, 255, 0.08);
+            --glow: 0 0 20px rgba(0, 242, 255, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(188, 19, 254, 0.05) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 242, 255, 0.05) 0%, transparent 25%);
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 { letter-spacing: -0.5px; }
+        .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, var(--neon-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .mono { font-family: 'Courier New', Courier, monospace; letter-spacing: 0px; }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: var(--border-glass);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background: rgba(5, 5, 8, 0.8);
+        }
+
+        .brand { font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .brand span { color: var(--neon-purple); font-size: 0.8em; border: 1px solid var(--neon-purple); padding: 2px 6px; border-radius: 4px; }
+        
+        .github-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .github-link:hover { color: #fff; }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            max-width: 900px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        .cta-btn {
+            padding: 15px 40px;
+            background: var(--text-main);
+            color: var(--bg-dark);
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+
+        .scroll-down {
+            position: absolute;
+            bottom: 40px;
+            animation: bounce 2s infinite;
+            opacity: 0.5;
+        }
+
+        /* --- THE PRISM CONCEPT --- */
+        .concept-section {
+            padding: 100px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        .feature-card {
+            background: var(--bg-panel);
+            padding: 30px;
+            border: var(--border-glass);
+            border-radius: 12px;
+        }
+        .feature-card h3 { color: var(--neon-blue); margin-bottom: 15px; }
+        
+        /* --- APP CONTAINER (Embedded Tool) --- */
+        #app-interface {
+            min-height: 100vh;
+            padding: 120px 20px 40px;
+            background: linear-gradient(to bottom, var(--bg-dark), #0a0a14);
+            border-top: var(--border-glass);
+        }
+
+        .app-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: rgba(20, 20, 30, 0.6);
+            border: var(--border-glass);
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+        }
+
+        /* --- TOOL SPECIFIC STYLES --- */
+        .role-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
+        .role-card {
+            background: rgba(255,255,255,0.03);
+            border: var(--border-glass);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .role-card:hover, .role-card.active {
+            border-color: var(--neon-blue);
+            background: rgba(0, 242, 255, 0.05);
+        }
+        
+        textarea {
+            width: 100%; height: 150px;
+            background: #000; border: var(--border-glass);
+            color: #fff; padding: 15px; border-radius: 8px;
+            margin-top: 10px; font-family: inherit; resize: vertical;
+        }
+        textarea:focus { outline: none; border-color: var(--neon-blue); }
+
+        .btn-gen {
+            width: 100%; padding: 15px; margin-top: 20px;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+            border: none; color: white; font-weight: bold; cursor: pointer;
+            border-radius: 8px; text-transform: uppercase;
+        }
+        .btn-gen:hover { opacity: 0.9; box-shadow: var(--glow); }
+
+        .output-box {
+            background: #08080c;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #a0c0ff;
+            height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border: 1px solid #333;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: var(--border-glass);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+        @media (max-width: 900px) { 
+            .hero h1 { font-size: 2.5rem; }
+            .app-grid { grid-template-columns: 1fr; } 
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="brand">IRSAN.AI <span>PDP v2.0</span></div>
+        <a href="https://github.com/pythonlover2023/IrsanAI-PDP-v2.0" class="github-link" target="_blank">
+            <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+            GitHub Repo
+        </a>
+    </nav>
+
+    <section class="hero">
+        <h1 class="gradient-text">Stop Randomness.<br>Start Logic.</h1>
+        <p>IrsanAI PDP (Perspective-Driven Protocol) transformiert vage User-Intents in deterministische, rollenbasierte System-Instruktionen.</p>
+        <a href="#app-interface" class="cta-btn">Start Logic Engine</a>
+        <div class="scroll-down">↓</div>
+    </section>
+
+    <section class="concept-section">
+        <h2 style="text-align: center;">The "Logic Prism" Technology</h2>
+        <div class="grid-3">
+            <div class="feature-card">
+                <h3>01. Input Injection</h3>
+                <p>Der rohe User-Input ist oft chaotisch, unstrukturiert und emotional. PDP isoliert die Kern-Intention vom Rauschen.</p>
+            </div>
+            <div class="feature-card">
+                <h3>02. Role Filtering</h3>
+                <p>Anstatt generisch zu antworten, wird die Anfrage durch eine operative Perspektive (Manager, Dev, Creative) gebrochen.</p>
+            </div>
+            <div class="feature-card">
+                <h3>03. Protocol Output</h3>
+                <p>Das Ergebnis ist kein Chat-Text, sondern ein Meta-Protokoll, das das Ziel-LLM (ChatGPT, Claude) zwingt, strukturiert zu arbeiten.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="app-interface">
+        <div class="app-grid">
+            
+            <div class="panel">
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                    <h2>⚙️ Configuration</h2>
+                    <select id="langSel" onchange="updateUI()" style="background:#000; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;">
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="bs">🇧🇦 Bosanski</option>
+                    </select>
+                </div>
+
+                <p class="mono" style="color:var(--text-muted); font-size:0.8rem;">SELECT OPERATIVE PERSPECTIVE:</p>
+                
+                <div class="role-grid">
+                    <div class="role-card active" onclick="setRole('manager', this)">
+                        <strong>👔 Manager</strong><br><small>No-Code, ROI, Strategy</small>
+                    </div>
+                    <div class="role-card" onclick="setRole('dev', this)">
+                        <strong>💻 Developer</strong><br><small>Code, API, Architecture</small>
+                    </div>
+                    <div class="role-card" onclick="setRole('creative', this)">
+                        <strong>🎨 Creative</strong><br><small>UX, Design, Vision</small>
+                    </div>
+                    <div class="role-card" onclick="setRole('analyst', this)">
+                        <strong>📊 Analyst</strong><br><small>Data, Excel, Structure</small>
+                    </div>
+                </div>
+
+                <p class="mono" style="color:var(--text-muted); font-size:0.8rem; margin-top:20px;">USER INTENT VECTOR:</p>
+                <textarea id="userInput" placeholder="Was möchtest du erreichen? (z.B. '500 Rechnungen sortieren' oder 'Python Skript fixen')"></textarea>
+
+                <button class="btn-gen" onclick="generate()">⚡ Generate Protocol</button>
+            </div>
+
+            <div class="panel">
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                    <h2>🚀 Protocol Output</h2>
+                    <button onclick="copyOut()" style="background:transparent; border:1px solid var(--neon-blue); color:var(--neon-blue); padding:5px 15px; cursor:pointer; border-radius:4px;">Copy</button>
+                </div>
+                <div class="output-box" id="outputArea">// System awaiting input vector...
+// Select a role and define intent.</div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>Powered by <strong>IrsanAI Logic Factory</strong> | <a href="https://github.com/pythonlover2023/IrsanAI-PDP-v2.0" style="color:#fff;">View Source</a></p>
+        <p style="opacity:0.5; margin-top:10px;">License: MIT | No User Data Stored</p>
+    </footer>
+
+    <script>
+        let currentRole = 'manager';
+        
+        const i18n = {
+            de: {
+                ph: "Was möchtest du erreichen? (z.B. '500 Rechnungen sortieren' oder 'Python Skript fixen')",
+                sys: "Du handelst als 'Perspective-Manager'.",
+                rules: {
+                    manager: "⛔ CODE-VERBOT: User ist Non-Coder. Biete UI-Lösungen & Konzepte.",
+                    dev: "✅ CODE-MODE: Sei technisch präzise. Nutze Scripts & APIs.",
+                    creative: "🎨 VISUAL-MODE: Fokus auf Design, Feeling und UX.",
+                    analyst: "📊 DATA-MODE: Strukturiere Daten. Tabellen & Excel Fokus."
+                }
+            },
+            en: {
+                ph: "What is your goal? (e.g. 'Sort 500 invoices' or 'Fix Python script')",
+                sys: "Act as a 'Perspective-Manager'.",
+                rules: {
+                    manager: "⛔ NO-CODE: User is non-coder. Offer UI solutions & concepts.",
+                    dev: "✅ CODE-MODE: Be technically precise. Use scripts & APIs.",
+                    creative: "🎨 VISUAL-MODE: Focus on design, feeling and UX.",
+                    analyst: "📊 DATA-MODE: Structure data. Tables & Excel focus."
+                }
+            },
+            bs: {
+                ph: "Šta želite postići? (npr. 'Sortiraj 500 računa' ili 'Popravi Python skriptu')",
+                sys: "Djeluj kao 'Menadžer Perspektive'.",
+                rules: {
+                    manager: "⛔ BEZ KODA: Korisnik ne programira. Nudi UI rješenja.",
+                    dev: "✅ KOD MOD: Budi tehnički precizan. Skripte i API.",
+                    creative: "🎨 VIZUALNO: Fokus na dizajn i UX.",
+                    analyst: "📊 PODACI: Strukturiraj podatke. Excel fokus."
+                }
+            }
+        };
+
+        function setRole(role, el) {
+            currentRole = role;
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function updateUI() {
+            const lang = document.getElementById('langSel').value;
+            document.getElementById('userInput').placeholder = i18n[lang].ph;
+        }
+
+        function generate() {
+            const lang = document.getElementById('langSel').value;
+            const input = document.getElementById('userInput').value;
+            if(!input) return alert("Input required / Eingabe erforderlich");
+
+            const t = i18n[lang];
+            const rule = t.rules[currentRole];
+            
+            const protocol = `### IRSAN.AI PDP v2.0 [PROTOCOL]
+TARGET ROLE: ${currentRole.toUpperCase()}
+LANGUAGE: ${lang.toUpperCase()}
+TIMESTAMP: ${new Date().toISOString()}
+
+[SYSTEM INSTRUCTION]
+${t.sys}
+${rule}
+
+[USER INTENT]
+"${input}"
+
+[TASK]
+1. Analyze intent through the '${currentRole}' lens.
+2. If role is 'Manager' -> simplify, explain logic.
+3. If role is 'Dev' -> provide code.
+4. Output structured solution.
+
+### EXECUTE ###`;
+
+            const out = document.getElementById('outputArea');
+            out.innerText = "";
+            let i = 0;
+            function type() {
+                if(i < protocol.length) {
+                    out.innerText += protocol.charAt(i);
+                    i++;
+                    setTimeout(type, 2);
+                }
+            }
+            type();
+        }
+
+        function copyOut() {
+            navigator.clipboard.writeText(document.getElementById('outputArea').innerText);
+            alert("Copied to clipboard!");
+        }
+    </script>
+</body>
+</html>
