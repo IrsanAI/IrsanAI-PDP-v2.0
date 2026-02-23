@@ -9,7 +9,7 @@ Das **Perspective-Driven Protocol (PDP)** ist kein herkömmlicher Prompt. Es ist
 
 ## 🚀 Die Live-Demo
 Du kannst das Tool direkt über die GitHub Page nutzen:
-👉 **[HIER KLICKEN ZUR LOGIC ENGINE](https://pythonlover2023.github.io/IrsanAI-PDP-v2.0/)**
+👉 **[HIER KLICKEN ZUR LOGIC ENGINE](https://irsanai.github.io/IrsanAI-PDP-v2.0/)**
 
 ## 🧠 Das Mindset: Logic over Chaos
 In der herkömmlichen KI-Interaktion ist der Output oft Glückssache. PDP v2.0 nutzt eine **operative Perspektiven-Filterung**:
